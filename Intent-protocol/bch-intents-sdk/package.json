@@ -1,0 +1,17 @@
+{
+    "name": "bch-intents-sdk",
+    "private": true,
+    "description": "BCH Intents SDK — Modular TypeScript SDK for building on BCH Intent-based swaps",
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "test": "npm run test --workspaces",
+        "clean": "npm run clean --workspaces",
+        "typecheck": "npm run typecheck --workspaces"
+    },
+    "workspaces": [
+        "packages/*"
+    ],
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

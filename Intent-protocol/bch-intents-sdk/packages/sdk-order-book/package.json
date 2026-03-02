@@ -1,0 +1,31 @@
+{
+    "name": "@bch-intents/sdk-order-book",
+    "version": "0.1.0",
+    "description": "HTTP client for interacting with the BCH Intents Relayer API",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "clean": "rm -rf dist",
+        "typecheck": "tsc --noEmit",
+        "test": "node --import tsx --test src/**/*.test.ts"
+    },
+    "dependencies": {
+        "@bch-intents/sdk-common": "*"
+    },
+    "devDependencies": {
+        "tsx": "^4.7.0",
+        "typescript": "^5.3.3"
+    },
+    "files": [
+        "dist"
+    ],
+    "license": "MIT"
+}

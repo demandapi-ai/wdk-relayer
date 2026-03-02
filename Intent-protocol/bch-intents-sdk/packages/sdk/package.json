@@ -1,0 +1,34 @@
+{
+    "name": "@bch-intents/sdk",
+    "version": "0.1.0",
+    "description": "The official SDK for building with BCH-based Intents Swaps",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "clean": "rm -rf dist",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@bch-intents/sdk-common": "*",
+        "@bch-intents/sdk-contracts": "*",
+        "@bch-intents/sdk-cashtokens": "*",
+        "@bch-intents/sdk-order-book": "*",
+        "@bch-intents/sdk-cross-chain": "*",
+        "@bch-intents/sdk-wallet-adapter": "*"
+    },
+    "devDependencies": {
+        "typescript": "^5.3.3"
+    },
+    "files": [
+        "dist"
+    ],
+    "license": "MIT"
+}
