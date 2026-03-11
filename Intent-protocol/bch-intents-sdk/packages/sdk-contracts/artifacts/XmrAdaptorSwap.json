@@ -1,0 +1,79 @@
+{
+  "contractName": "XmrAdaptorSwap",
+  "constructorInputs": [
+    {
+      "name": "recipientPkh",
+      "type": "bytes20"
+    },
+    {
+      "name": "senderPkh",
+      "type": "bytes20"
+    },
+    {
+      "name": "timelock",
+      "type": "int"
+    }
+  ],
+  "abi": [
+    {
+      "name": "claim",
+      "inputs": [
+        {
+          "name": "recipientPk",
+          "type": "pubkey"
+        },
+        {
+          "name": "recipientSig",
+          "type": "sig"
+        }
+      ]
+    },
+    {
+      "name": "refund",
+      "inputs": [
+        {
+          "name": "senderPk",
+          "type": "pubkey"
+        },
+        {
+          "name": "senderSig",
+          "type": "sig"
+        }
+      ]
+    }
+  ],
+  "bytecode": "OP_3 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_4 OP_PICK OP_HASH160 OP_EQUALVERIFY OP_4 OP_ROLL OP_4 OP_ROLL OP_CHECKSIG OP_NIP OP_NIP OP_NIP OP_ELSE OP_3 OP_ROLL OP_1 OP_NUMEQUALVERIFY OP_3 OP_PICK OP_HASH160 OP_ROT OP_EQUALVERIFY OP_2SWAP OP_CHECKSIGVERIFY OP_SWAP OP_CHECKLOCKTIMEVERIFY OP_2DROP OP_1 OP_ENDIF",
+  "source": "pragma cashscript ^0.12.0;\r\n\r\n// =============================================================================\r\n// XMR-BCH Atomic Swap using Adaptor Signatures\r\n// =============================================================================\r\n//\r\n// Unlike hash-based cross-chain swaps (HTLCs), Monero does not support scripts \r\n// and cannot verify SHA-256 hashes on the blockchain. Therefore, we use Point \r\n// Time-Locked Contracts (PTLCs) via Adaptor Signatures.\r\n//\r\n// The magic happens *off-chain* during the SDK handshake. By providing a valid\r\n// ECDSA/Schnorr signature to claim the BCH, the recipient mathematically reveals \r\n// the scalar (the secret) needed to unlock the Monero 2-of-2 multisig wallet.\r\n//\r\n// To the Bitcoin Cash blockchain, this just looks like a simple identity check.\r\n\r\ncontract XmrAdaptorSwap(\r\n    // The public key hash of the recipient (who claims the funds and reveals the secret)\r\n    bytes20 recipientPkh,\r\n    // The public key hash of the sender (who locks the funds & can refund if swap fails)\r\n    bytes20 senderPkh,\r\n    // Unix timestamp when the swap expires and the sender can reclaim their BCH\r\n    int timelock\r\n) {\r\n    // =========================================================================\r\n    // claim() — Recipient claims by providing a valid transaction signature\r\n    // =========================================================================\r\n    function claim(pubkey recipientPk, sig recipientSig) {\r\n        // Enforce identity: Only the intended recipient can claim\r\n        require(hash160(recipientPk) == recipientPkh);\r\n        \r\n        // Enforce signature: The signature itself acts as the secret reveal\r\n        // for the Adaptor protocol. The relayer extracts the `sig` bytes.\r\n        require(checkSig(recipientSig, recipientPk));\r\n    }\r\n\r\n    // =========================================================================\r\n    // refund() — Sender reclaims funds after the timelock expires\r\n    // =========================================================================\r\n    function refund(pubkey senderPk, sig senderSig) {\r\n        // Enforce identity: Only the original sender can refund\r\n        require(hash160(senderPk) == senderPkh);\r\n        \r\n        // Enforce signature: Standard spend authorization\r\n        require(checkSig(senderSig, senderPk));\r\n        \r\n        // Enforce time: The locktime must have expired\r\n        require(tx.time >= timelock);\r\n    }\r\n}\r\n",
+  "debug": {
+    "bytecode": "5379009c635479a988547a547aac77777767537a519d5379a97b8872ad7cb16d5168",
+    "sourceMap": "28:4:35:5;;;;;30:24:30:35;;:16::36:1;:8::54;34:25:34:37:0;;:39::50;;:8::53:1;28:4:35:5;;;;40::49::0;;;;42:24:42:32;;:16::33:1;:37::46:0;:8::48:1;45:25:45:44:0;:8::47:1;48:27:48:35:0;:8::37:1;40:4:49:5;;17:0:50:1",
+    "logs": [],
+    "requires": [
+      {
+        "ip": 11,
+        "line": 30
+      },
+      {
+        "ip": 17,
+        "line": 34
+      },
+      {
+        "ip": 29,
+        "line": 42
+      },
+      {
+        "ip": 31,
+        "line": 45
+      },
+      {
+        "ip": 33,
+        "line": 48
+      }
+    ]
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.12.1"
+  },
+  "updatedAt": "2026-03-10T17:27:14.800Z"
+}

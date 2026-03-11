@@ -9,3 +9,4 @@ export * from '@bch-intents/sdk-cashtokens';
 export * from '@bch-intents/sdk-order-book';
 export * from '@bch-intents/sdk-cross-chain';
 export * from '@bch-intents/sdk-wallet-adapter';
+export * from '@bch-intents/sdk-xmr-swap';

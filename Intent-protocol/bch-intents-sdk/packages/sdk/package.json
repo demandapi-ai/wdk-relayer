@@ -22,7 +22,8 @@
         "@bch-intents/sdk-cashtokens": "*",
         "@bch-intents/sdk-order-book": "*",
         "@bch-intents/sdk-cross-chain": "*",
-        "@bch-intents/sdk-wallet-adapter": "*"
+        "@bch-intents/sdk-wallet-adapter": "*",
+        "@bch-intents/sdk-xmr-swap": "*"
     },
     "devDependencies": {
         "typescript": "^5.3.3"
