@@ -54,14 +54,14 @@ export function ChainSelector({ selectedChain, onSelect, disabledChains = [] }: 
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                 padding: '10px 12px', border: 'none', borderRadius: 8,
                 background: c.id === selectedChain.id ? 'rgba(0,147,147,0.15)' : 'transparent',
-                color: isDisabled ? 'var(--color-text-muted)' : 'var(--color-text-primary)',
+                color: isDisabled ? 'var(--color-text-disabled)' : 'var(--color-text)',
                 cursor: isDisabled ? 'not-allowed' : 'pointer', fontSize: 14,
                 opacity: isDisabled ? 0.5 : 1
               }}
             >
               <span style={{ fontSize: 18 }}>{c.icon}</span>
               {c.name}
-              {c.id === selectedChain.id && <div style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'var(--color-accent-mint)' }} />}
+              {c.id === selectedChain.id && <div style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'var(--color-primary-light)' }} />}
             </button>
           );
         })}
@@ -78,13 +78,13 @@ export function ChainSelector({ selectedChain, onSelect, disabledChains = [] }: 
         style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px',
           background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)',
-          borderRadius: 12, color: 'var(--color-text-primary)', cursor: 'pointer',
+          borderRadius: 12, color: 'var(--color-text)', cursor: 'pointer',
           fontSize: 14, fontWeight: 600
         }}
       >
         <span style={{ fontSize: 16 }}>{selectedChain.icon}</span>
         <span>{selectedChain.symbol}</span>
-        <ChevronDown size={14} color="var(--color-text-muted)" />
+        <ChevronDown size={14} color="var(--color-text-disabled)" />
       </button>
       {isOpen && typeof document !== 'undefined' && createPortal(dropdownContent, document.body)}
     </>

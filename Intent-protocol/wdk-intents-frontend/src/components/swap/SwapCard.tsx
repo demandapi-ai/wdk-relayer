@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowDownUp, Zap, Info, Loader2, CheckCircle2 } from 'lucide-react';
 import { ChainSelector } from './ChainSelector';
 import { TokenSelector } from './TokenSelector';
@@ -29,7 +29,61 @@ export function SwapCard() {
   const [isSwapping, setIsSwapping] = useState(false);
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
 
-  const outputAmount = amount ? (parseFloat(amount) * 0.999).toFixed(6) : '';
+  // Dynamic Pricing State
+  const [prices, setPrices] = useState<Record<string, number>>({ SOL: 0, BNB: 0, USDC: 1, USDT: 1 });
+  const [isFetchingPrice, setIsFetchingPrice] = useState(false);
+
+  // Fetch prices on mount
+  useEffect(() => {
+    let mounted = true;
+    const fetchMarketPrices = async () => {
+      setIsFetchingPrice(true);
+      try {
+        const [solRes, bnbRes] = await Promise.allSettled([
+          fetch('/api/bitfinex/v2/calc/fx', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ccy1: 'SOL', ccy2: 'USD' }),
+          }).then(r => r.json()),
+          fetch('/api/bitfinex/v2/calc/fx', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ccy1: 'BNB', ccy2: 'USD' }),
+          }).then(r => r.json()),
+        ]);
+        if (mounted) {
+          setPrices({
+            SOL: solRes.status === 'fulfilled' && Array.isArray(solRes.value) ? solRes.value[0] : 0,
+            BNB: bnbRes.status === 'fulfilled' && Array.isArray(bnbRes.value) ? bnbRes.value[0] : 0,
+            USDC: 1,
+            USDT: 1
+          });
+        }
+      } catch (err) {
+        console.warn('[SwapCard] Failed to fetch proxy prices:', err);
+      } finally {
+        if (mounted) setIsFetchingPrice(false);
+      }
+    };
+    fetchMarketPrices();
+    return () => { mounted = false; };
+  }, []);
+
+  // Calculate output based on dynamic market prices mapping
+  let outputAmount = '';
+  if (amount && parseFloat(amount) > 0) {
+    const fromSymbol = fromToken.symbol.includes('SOL') ? 'SOL' : fromToken.symbol.includes('BNB') ? 'BNB' : fromToken.symbol;
+    const toSymbol = toToken.symbol.includes('SOL') ? 'SOL' : toToken.symbol.includes('BNB') ? 'BNB' : toToken.symbol;
+    
+    // If we have valid prices for both legs (or fallback to 1:1 if API breaks)
+    const fromUsd = prices[fromSymbol] || 1;
+    const toUsd = prices[toSymbol] || 1;
+    
+    // 0.1% bridge fee
+    const feeCoefficient = 0.999;
+    const rawOutput = (parseFloat(amount) * fromUsd) / toUsd;
+    outputAmount = (rawOutput * feeCoefficient).toFixed(6);
+  }
 
   const flipDirection = () => {
     const tmpChain = fromChain;
@@ -149,7 +203,10 @@ export function SwapCard() {
         const maker = keypair.publicKey;
         // Open taker, anyone with knowledge of the hashlock can claim (or the relayer)
         const taker = new PublicKey("11111111111111111111111111111111"); 
-        const tokenMint = new PublicKey(fromToken.address);
+        
+        // Handle "native" SOL by treating it as Wrapped SOL (wSOL) for SPL Token Escrow
+        const mintStr = fromToken.address === 'native' ? 'So11111111111111111111111111111111111111112' : fromToken.address;
+        const tokenMint = new PublicKey(mintStr);
 
         const [escrowPda] = PublicKey.findProgramAddressSync(
           [Buffer.from("escrow"), maker.toBuffer(), Buffer.from(ethers.getBytes(hashlock))],
@@ -162,10 +219,54 @@ export function SwapCard() {
 
         const makerTokenAccount = await splToken.getAssociatedTokenAddress(tokenMint, maker);
         
+        console.log('--- [Swap Debug] Solana Execution Parameters ---');
+        console.log('Maker PDA:', maker.toBase58());
+        console.log('Taker:', taker.toBase58());
+        console.log('Token Mint:', tokenMint.toBase58());
+        console.log('Escrow PDA:', escrowPda.toBase58());
+        console.log('Vault PDA:', vaultPda.toBase58());
+        console.log('Maker Token Account (Must exist!):', makerTokenAccount.toBase58());
+        console.log('------------------------------------------------');
+
         const amountBN = new BN(parsedAmount.toString());
         const timelockBN = new BN(Math.floor(Date.now() / 1000) + 7200);
 
-        const tx = await program.methods
+        let signature = '';
+        try {
+          const tx = new web3.Transaction();
+
+        // 1. If Native SOL, handle ATA and Wrapping dynamically
+        if (fromToken.address === 'native') {
+          console.log('[Swap] Native SOL detected. Ensuring wSOL ATA exists and wrapping...');
+          const accountInfo = await connection.getAccountInfo(makerTokenAccount);
+          
+          if (!accountInfo) {
+            console.log('[Swap] Creating Associated Token Account for wSOL...');
+            tx.add(
+              splToken.createAssociatedTokenAccountInstruction(
+                maker, // payer
+                makerTokenAccount, // ata
+                maker, // owner
+                tokenMint // mint (wSOL)
+              )
+            );
+          }
+
+          console.log(`[Swap] Wrapping ${amount} SOL into wSOL...`);
+          // Transfer SOL to the ATA
+          tx.add(
+            SystemProgram.transfer({
+              fromPubkey: maker,
+              toPubkey: makerTokenAccount,
+              lamports: parsedAmount, // transfer the exact amount
+            })
+          );
+          // Sync Native instruction to finalize the wrap
+          tx.add(splToken.createSyncNativeInstruction(makerTokenAccount));
+        }
+
+        // 2. Add the Anchor Initialize Escrow Instruction
+        const swapIx = await program.methods
           .initialize(Array.from(ethers.getBytes(hashlock)), timelockBN, amountBN)
           .accounts({
             maker,
@@ -178,16 +279,29 @@ export function SwapCard() {
             tokenProgram: splToken.TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
           })
-          .transaction();
+          .instruction();
 
-        const latestBlockhash = await connection.getLatestBlockhash();
-        tx.recentBlockhash = latestBlockhash.blockhash;
-        tx.feePayer = maker;
-        tx.sign(keypair);
-        
-        const signature = await connection.sendRawTransaction(tx.serialize());
-        await connection.confirmTransaction({ signature, ...latestBlockhash });
-        console.log('[Swap] Solana Escrow created. TX:', signature);
+        tx.add(swapIx);
+
+          const latestBlockhash = await connection.getLatestBlockhash();
+          tx.recentBlockhash = latestBlockhash.blockhash;
+          tx.feePayer = maker;
+          tx.sign(keypair);
+          
+          signature = await connection.sendRawTransaction(tx.serialize());
+          await connection.confirmTransaction({ signature, ...latestBlockhash });
+          console.log('[Swap] Solana Escrow created. TX:', signature);
+        } catch (simError: any) {
+          console.error('[Swap Error] Solana execution failed heavily:', simError);
+          console.error('[Swap Error Debug JSON] =>', JSON.stringify(simError, Object.getOwnPropertyNames(simError), 2));
+          if (simError.logs) {
+            console.error('[Swap Error] Program Logs:', JSON.stringify(simError.logs, null, 2));
+          }
+          if (simError.message && simError.message.includes('custom program error: 0xbc4')) {
+            console.error('[Swap Error Breakdown] Error 0xbc4 (3012) means AccountNotInitialized. Your wallet DOES NOT have the wSOL (or specified SPL) token account initialized yet. You must either wrap your SOL, or the frontend must append an AssociatedTokenAccount create instruction.');
+          }
+          throw simError; // rethrow to abort swap flow
+        }
 
         console.log(`[Swap] Calling Relayer API with Solana Escrow PDA: ${escrowPda.toBase58()}...`);
         await RelayerAPI.requestSolanaToBscSwap({
@@ -204,8 +318,14 @@ export function SwapCard() {
         setAmount('');
       }
     } catch (e: any) {
-      console.error('[Swap] Execution error:', e);
-      alert('Swap failed: ' + e.message);
+      console.error('================ COMPREHENSIVE SWAP ERROR ================');
+      console.error('[Swap] Execution error instance:', e);
+      if (e.reason) console.error('[Swap Error Reason]:', e.reason);
+      if (e.code) console.error('[Swap Error Code]:', e.code);
+      if (e.transaction) console.error('[Swap Failed Tx Payload]:', JSON.stringify(e.transaction, null, 2));
+      console.error('[Swap Error Raw JSON]:', JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
+      console.error('==========================================================');
+      alert('Swap failed. Check console for detailed Web3 errors -> ' + (e.reason || e.message || 'Unknown Error'));
     } finally {
       setIsSwapping(false);
     }
@@ -234,8 +354,8 @@ export function SwapCard() {
       {/* Header */}
       <div style={{ padding: '24px 28px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-heading)' }}>Swap</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-muted)' }}>
-          <Zap size={12} color="var(--color-accent-mint)" /> Cross-Chain Atomic
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-disabled)' }}>
+          <Zap size={12} color="var(--color-primary-light)" /> Cross-Chain Atomic
         </div>
       </div>
 
@@ -243,8 +363,8 @@ export function SwapCard() {
         {/* FROM INPUT */}
         <div className="swap-input-group" style={{ marginBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 600 }}>You Pay</span>
-            <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Balance: 0.00</span>
+            <span style={{ fontSize: 13, color: 'var(--color-text-disabled)', fontWeight: 600 }}>You Pay</span>
+            <span style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>Balance: 0.00</span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <input
@@ -279,9 +399,10 @@ export function SwapCard() {
         {/* TO INPUT */}
         <div className="swap-input-group">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 600 }}>You Receive</span>
-            <span style={{ fontSize: 12, color: 'var(--color-accent-mint)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Zap size={10} /> Instant Fill
+            <span style={{ fontSize: 13, color: 'var(--color-text-disabled)', fontWeight: 600 }}>You Receive</span>
+            <span style={{ fontSize: 12, color: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              {isFetchingPrice ? <Loader2 size={10} className="spin" /> : <Zap size={10} />} 
+              {isFetchingPrice ? 'Fetching Oracle...' : 'Instant Fill'}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -309,7 +430,7 @@ export function SwapCard() {
 
         {/* Route Info */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-muted)',
+          display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-disabled)',
           padding: '12px 0 16px', justifyContent: 'center',
         }}>
           <Info size={12} />
@@ -319,10 +440,10 @@ export function SwapCard() {
         {lastTxHash && (
           <div style={{
             margin: '0 0 16px 0', padding: '12px', background: 'rgba(0,147,147,0.1)',
-            border: '1px solid var(--color-accent-mint)', borderRadius: 12,
+            border: '1px solid var(--color-primary-light)', borderRadius: 12,
             display: 'flex', flexDirection: 'column', gap: 6
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-accent-mint)', fontSize: 13, fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-primary-light)', fontSize: 13, fontWeight: 700 }}>
               <CheckCircle2 size={16} /> Transaction Locked
             </div>
             <a 

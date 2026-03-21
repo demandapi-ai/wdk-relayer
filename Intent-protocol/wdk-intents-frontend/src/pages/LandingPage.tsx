@@ -24,7 +24,7 @@ export default function LandingPage() {
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: 'rgba(0,147,147,0.1)', border: '1px solid rgba(0,147,147,0.2)',
           borderRadius: 50, padding: '6px 16px', fontSize: 12, fontWeight: 600,
-          color: 'var(--color-accent-mint)', marginBottom: 24,
+          color: 'var(--color-primary-light)', marginBottom: 24,
         }}>
           <Zap size={12} /> Powered by Tether WDK
         </div>
@@ -61,7 +61,7 @@ export default function LandingPage() {
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 80 }}>
         {FEATURES.map(f => (
           <div key={f.title} className="glass-card" style={{ padding: 28 }}>
-            <div style={{ color: 'var(--color-accent-teal)', marginBottom: 14 }}>{f.icon}</div>
+            <div style={{ color: 'var(--color-primary)', marginBottom: 14 }}>{f.icon}</div>
             <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{f.title}</h3>
             <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>{f.desc}</p>
           </div>
@@ -83,7 +83,7 @@ export default function LandingPage() {
               <div style={{
                 width: 44, height: 44, borderRadius: 14, display: 'flex',
                 alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px',
-                background: 'linear-gradient(135deg, var(--color-accent-teal), var(--color-accent-mint))',
+                background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
                 fontWeight: 800, fontSize: 18, color: '#fff',
               }}>{s.step}</div>
               <h4 style={{ fontWeight: 700, marginBottom: 6 }}>{s.title}</h4>

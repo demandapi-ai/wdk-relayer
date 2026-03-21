@@ -31,7 +31,7 @@ export function TokenSelector({ selectedToken, chainId, onSelect }: TokenSelecto
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700 }}>Select a token</h3>
-          <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: 24 }}>&times;</button>
+          <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-disabled)', cursor: 'pointer', fontSize: 24 }}>&times;</button>
         </div>
 
         <div style={{
@@ -39,12 +39,12 @@ export function TokenSelector({ selectedToken, chainId, onSelect }: TokenSelecto
           background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)',
           borderRadius: 12, marginBottom: 20
         }}>
-          <Search size={16} color="var(--color-text-muted)" />
+          <Search size={16} color="var(--color-text-disabled)" />
           <input 
             type="text" 
             placeholder="Search name or paste address" 
             style={{
-              background: 'transparent', border: 'none', color: 'var(--color-text-primary)',
+              background: 'transparent', border: 'none', color: 'var(--color-text)',
               fontSize: 14, width: '100%', outline: 'none'
             }}
           />
@@ -69,13 +69,13 @@ export function TokenSelector({ selectedToken, chainId, onSelect }: TokenSelecto
             >
               <span style={{ fontSize: 24 }}>{token.icon}</span>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)' }}>{token.symbol}</span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{token.name}</span>
+                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>{token.symbol}</span>
+                <span style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>{token.name}</span>
               </div>
             </button>
           ))}
           {tokens.length === 0 && (
-            <div style={{ padding: 20, textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>
+            <div style={{ padding: 20, textAlign: 'center', color: 'var(--color-text-disabled)', fontSize: 14 }}>
               No tokens found for this network.
             </div>
           )}
@@ -92,7 +92,7 @@ export function TokenSelector({ selectedToken, chainId, onSelect }: TokenSelecto
         style={{
           display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
           background: 'rgba(0,147,147,0.15)', border: '1px solid rgba(0,147,147,0.3)',
-          borderRadius: 20, color: 'var(--color-text-primary)', cursor: 'pointer',
+          borderRadius: 20, color: 'var(--color-text)', cursor: 'pointer',
           fontSize: 16, fontWeight: 700, minWidth: 100, justifyContent: 'space-between'
         }}
       >

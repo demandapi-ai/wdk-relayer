@@ -18,8 +18,8 @@ export function FloatingHeader() {
           }}>
             <Zap size={18} color="#fff" />
           </div>
-          <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-primary)', fontFamily: 'var(--font-heading)' }}>
-            Intent<span style={{ color: 'var(--color-accent-mint)' }}>DEX</span>
+          <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', fontFamily: 'var(--font-heading)' }}>
+            Intent<span style={{ color: 'var(--color-primary-light)' }}>DEX</span>
           </span>
         </NavLink>
 
@@ -33,6 +33,12 @@ export function FloatingHeader() {
           </NavLink>
           <NavLink to="/portfolio" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             Portfolio
+          </NavLink>
+          <NavLink to="/agents" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--color-primary-light)', boxShadow: '0 0 8px var(--color-primary-light)' }} />
+              Agents
+            </span>
           </NavLink>
         </nav>
 

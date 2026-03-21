@@ -122,7 +122,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <div style={{
                 width: 56, height: 56, borderRadius: 16, margin: '0 auto 16px',
-                background: 'linear-gradient(135deg, var(--color-accent-teal), var(--color-accent-mint))',
+                background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <KeyRound size={28} color="#fff" />
@@ -144,7 +144,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
               <button style={{
                 width: '100%', padding: '14px 0', borderRadius: 14, fontSize: 14, fontWeight: 600,
                 background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)', cursor: 'pointer', display: 'flex',
+                color: 'var(--color-text)', cursor: 'pointer', display: 'flex',
                 alignItems: 'center', justifyContent: 'center', gap: 8,
               }} onClick={() => setStep('import')}>
                 <Download size={16} /> Import Seed Phrase
@@ -175,8 +175,8 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', zIndex: 2,
                 }} onClick={() => setShowSeed(true)}>
-                  <EyeOff size={20} color="var(--color-text-muted)" />
-                  <span style={{ marginLeft: 8, color: 'var(--color-text-muted)', fontSize: 13 }}>Click to reveal</span>
+                  <EyeOff size={20} color="var(--color-text-disabled)" />
+                  <span style={{ marginLeft: 8, color: 'var(--color-text-disabled)', fontSize: 13 }}>Click to reveal</span>
                 </div>
               )}
               <div style={{
@@ -186,9 +186,9 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
                   <div key={i} style={{
                     fontSize: 12, fontFamily: 'var(--font-mono)', padding: '6px 8px',
                     background: 'rgba(255,255,255,0.04)', borderRadius: 8,
-                    color: 'var(--color-text-primary)',
+                    color: 'var(--color-text)',
                   }}>
-                    <span style={{ color: 'var(--color-text-muted)', marginRight: 4 }}>{i + 1}.</span>
+                    <span style={{ color: 'var(--color-text-disabled)', marginRight: 4 }}>{i + 1}.</span>
                     {word}
                   </div>
                 ))}
@@ -198,7 +198,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
             <button style={{
               width: '100%', padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 600,
               background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)',
-              color: 'var(--color-text-primary)', cursor: 'pointer', display: 'flex',
+              color: 'var(--color-text)', cursor: 'pointer', display: 'flex',
               alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 12,
             }} onClick={copySeed}>
               {copied ? <><Check size={14} color="var(--color-success)" /> Copied!</> : <><Copy size={14} /> Copy Seed Phrase</>}
@@ -215,7 +215,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
         {step === 'create-password' && (
           <>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <Lock size={32} color="var(--color-accent-teal)" style={{ marginBottom: 12 }} />
+              <Lock size={32} color="var(--color-primary)" style={{ marginBottom: 12 }} />
               <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-heading)', marginBottom: 6 }}>
                 Set a Password
               </h2>
@@ -233,7 +233,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
                 style={{
                   width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 14,
                   background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)', outline: 'none',
+                  color: 'var(--color-text)', outline: 'none',
                 }}
               />
               <input
@@ -244,7 +244,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
                 style={{
                   width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 14,
                   background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-primary)', outline: 'none',
+                  color: 'var(--color-text)', outline: 'none',
                 }}
                 onKeyDown={e => e.key === 'Enter' && handleSavePassword()}
               />
@@ -280,7 +280,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
               style={{
                 width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 14,
                 background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)', outline: 'none', resize: 'none',
+                color: 'var(--color-text)', outline: 'none', resize: 'none',
                 fontFamily: 'var(--font-mono)', marginBottom: 12,
               }}
             />
@@ -293,7 +293,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
               <button style={{
                 flex: 1, padding: '12px', borderRadius: 12, fontSize: 14, fontWeight: 600,
                 background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)', cursor: 'pointer',
+                color: 'var(--color-text)', cursor: 'pointer',
               }} onClick={() => { setStep('choose'); setError(''); }}>
                 Back
               </button>
@@ -310,7 +310,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
         {step === 'unlock' && (
           <>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <Lock size={32} color="var(--color-accent-teal)" style={{ marginBottom: 12 }} />
+              <Lock size={32} color="var(--color-primary)" style={{ marginBottom: 12 }} />
               <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: 'var(--font-heading)', marginBottom: 6 }}>
                 Welcome Back
               </h2>
@@ -328,7 +328,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
               style={{
                 width: '100%', padding: '12px 14px', borderRadius: 12, fontSize: 14,
                 background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)', outline: 'none', marginBottom: 12,
+                color: 'var(--color-text)', outline: 'none', marginBottom: 12,
               }}
               autoFocus
             />
@@ -345,7 +345,7 @@ export function WalletOnboardingModal({ open, onClose }: { open: boolean; onClos
 
             <button style={{
               width: '100%', padding: '10px', borderRadius: 10, fontSize: 12,
-              background: 'transparent', border: 'none', color: 'var(--color-text-muted)',
+              background: 'transparent', border: 'none', color: 'var(--color-text-disabled)',
               cursor: 'pointer',
             }} onClick={() => { setStep('choose'); setError(''); }}>
               Use a different wallet

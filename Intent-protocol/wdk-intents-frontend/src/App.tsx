@@ -12,6 +12,8 @@ import TradePage from './pages/TradePage';
 import OrdersPage from './pages/OrdersPage';
 import PortfolioPage from './pages/PortfolioPage';
 
+import AgentsDashboard from './pages/AgentsDashboard';
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -25,6 +27,7 @@ export default function App() {
                 <Route path="/trade" element={<TradePage />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/portfolio" element={<PortfolioPage />} />
+                <Route path="/agents" element={<AgentsDashboard />} />
               </Routes>
             </main>
             <Footer />

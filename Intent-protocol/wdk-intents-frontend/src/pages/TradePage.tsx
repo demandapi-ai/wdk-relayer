@@ -35,15 +35,15 @@ export default function TradePage() {
           <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>⚡ How it Works</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
             <p>1. You sign an intent to swap tokens.</p>
-            <p>2. Our <strong style={{ color: 'var(--color-text-primary)' }}>Intent Relayer</strong> detects your order.</p>
-            <p>3. The Relayer <strong style={{ color: 'var(--color-accent-mint)' }}>instantly fills</strong> on the destination chain.</p>
+            <p>2. Our <strong style={{ color: 'var(--color-text)' }}>Intent Relayer</strong> detects your order.</p>
+            <p>3. The Relayer <strong style={{ color: 'var(--color-primary-light)' }}>instantly fills</strong> on the destination chain.</p>
             <p>4. Atomic & Trustless. No bridges.</p>
           </div>
         </div>
 
         {/* Supported Chains */}
         <div className="glass-card" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>Chains:</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-disabled)', whiteSpace: 'nowrap' }}>Chains:</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {CHAINS_LIST.map(c => (
               <span key={c.id} style={{

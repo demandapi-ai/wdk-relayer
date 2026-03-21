@@ -43,7 +43,7 @@ export function ConnectWalletButton() {
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '8px 14px', borderRadius: 12,
               background: 'rgba(0,147,147,0.15)', border: '1px solid rgba(0,147,147,0.3)',
-              color: 'var(--color-accent-mint)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              color: 'var(--color-primary-light)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
             }}
             onClick={() => setShowPopover(!showPopover)}
           >
@@ -82,7 +82,7 @@ export function ConnectWalletButton() {
                       <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {wdk.evmAddress}
                       </span>
-                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 2 }}
+                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-disabled)', padding: 2 }}
                         onClick={() => copyToClipboard(wdk.evmAddress!, 'evm')}>
                         {copiedField === 'evm' ? <Check size={12} color="var(--color-success)" /> : <Copy size={12} />}
                       </button>
@@ -104,7 +104,7 @@ export function ConnectWalletButton() {
                       <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {wdk.solanaAddress}
                       </span>
-                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 2 }}
+                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-disabled)', padding: 2 }}
                         onClick={() => copyToClipboard(wdk.solanaAddress!, 'sol')}>
                         {copiedField === 'sol' ? <Check size={12} color="var(--color-success)" /> : <Copy size={12} />}
                       </button>
@@ -138,16 +138,16 @@ export function ConnectWalletButton() {
                             <span key={i} style={{
                               fontSize: 10, fontFamily: 'var(--font-mono)', padding: '3px 4px',
                               background: 'rgba(255,255,255,0.04)', borderRadius: 4,
-                              color: 'var(--color-text-primary)',
+                              color: 'var(--color-text)',
                             }}>
-                              <span style={{ color: 'var(--color-text-muted)' }}>{i + 1}.</span> {word}
+                              <span style={{ color: 'var(--color-text-disabled)' }}>{i + 1}.</span> {word}
                             </span>
                           ))}
                         </div>
                         <button style={{
                           width: '100%', padding: '6px', borderRadius: 6, fontSize: 11, fontWeight: 600,
                           background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border)',
-                          color: 'var(--color-text-primary)', cursor: 'pointer', display: 'flex',
+                          color: 'var(--color-text)', cursor: 'pointer', display: 'flex',
                           alignItems: 'center', justifyContent: 'center', gap: 4,
                         }} onClick={() => copyToClipboard(wdk.seedPhrase!, 'seed')}>
                           {copiedField === 'seed' ? <><Check size={10} color="var(--color-success)" /> Copied!</> : <><Copy size={10} /> Copy</>}
@@ -160,7 +160,7 @@ export function ConnectWalletButton() {
                 {/* WDK badge */}
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
-                  color: 'var(--color-accent-teal)', marginBottom: 12,
+                  color: 'var(--color-primary)', marginBottom: 12,
                   padding: '6px 10px', borderRadius: 8, background: 'rgba(0,147,147,0.08)',
                 }}>
                   <KeyRound size={12} /> Powered by Tether WDK — Self-Custodial

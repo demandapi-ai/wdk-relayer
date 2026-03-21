@@ -43,24 +43,24 @@ export default function OrdersPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700 }}>{order.direction}</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>{order.id}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-disabled)', fontFamily: 'var(--font-mono)' }}>{order.id}</div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)' }}>{order.from}</span>
-              <ArrowRight size={14} color="var(--color-text-muted)" />
-              <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--color-accent-mint)' }}>{order.to}</span>
+              <ArrowRight size={14} color="var(--color-text-disabled)" />
+              <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--color-primary-light)' }}>{order.to}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <StatusBadge status={order.status} />
-              <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{order.time}</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{order.time}</span>
             </div>
           </div>
         ))}
       </div>
 
       {MOCK_ORDERS.length === 0 && (
-        <div className="glass-card" style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-muted)' }}>
+        <div className="glass-card" style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-disabled)' }}>
           No orders yet. Start by making a swap on the Trade page.
         </div>
       )}

@@ -220,7 +220,7 @@ export default function PortfolioPage() {
               display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
               borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer',
               background: 'rgba(0,147,147,0.1)', border: '1px solid rgba(0,147,147,0.2)',
-              color: 'var(--color-accent-teal)', transition: 'all 0.2s',
+              color: 'var(--color-primary)', transition: 'all 0.2s',
             }}
           >
             {isLoading ? <Loader2 size={14} className="spin" /> : <RefreshCw size={14} />}
@@ -231,7 +231,7 @@ export default function PortfolioPage() {
 
       {/* Total Value */}
       <div className="glass-card" style={{ padding: 28, marginBottom: 24, textAlign: 'center' }}>
-        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 4 }}>Total Portfolio Value</div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-disabled)', marginBottom: 4 }}>Total Portfolio Value</div>
         <div style={{ fontSize: 36, fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
           <span className="gradient-text">
             {wdk.isInitialized ? `$${totalUsd.toFixed(2)}` : '$—.——'}
@@ -240,13 +240,13 @@ export default function PortfolioPage() {
         {!wdk.isInitialized ? (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8,
-            fontSize: 11, color: 'var(--color-accent-teal)',
+            fontSize: 11, color: 'var(--color-primary)',
             background: 'rgba(0,147,147,0.1)', padding: '4px 10px', borderRadius: 6,
           }}>
             <Wallet size={10} /> Connect your WDK wallet to view balances
           </div>
         ) : lastRefresh && (
-          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 8 }}>
+          <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginTop: 8 }}>
             Last updated: {lastRefresh.toLocaleTimeString()} · Prices via Bitfinex
           </div>
         )}
@@ -267,7 +267,7 @@ export default function PortfolioPage() {
                 onClick={() => copyAddress(wdk.solanaAddress!, 'sol')}
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11,
+                  color: 'var(--color-text-disabled)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11,
                 }}
               >
                 {copiedField === 'sol' ? <Check size={12} color="var(--color-success)" /> : <Copy size={12} />}
@@ -277,7 +277,7 @@ export default function PortfolioPage() {
           </div>
 
           <div style={{
-            fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)',
+            fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-disabled)',
             background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: 8, marginBottom: 16,
             overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
@@ -298,7 +298,7 @@ export default function PortfolioPage() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 600 }}>{t.amount}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{t.usd}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{t.usd}</div>
               </div>
             </div>
           ))}
@@ -317,7 +317,7 @@ export default function PortfolioPage() {
                 onClick={() => copyAddress(wdk.evmAddress!, 'evm')}
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11,
+                  color: 'var(--color-text-disabled)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11,
                 }}
               >
                 {copiedField === 'evm' ? <Check size={12} color="var(--color-success)" /> : <Copy size={12} />}
@@ -327,7 +327,7 @@ export default function PortfolioPage() {
           </div>
 
           <div style={{
-            fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)',
+            fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-disabled)',
             background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: 8, marginBottom: 16,
             overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
@@ -348,7 +348,7 @@ export default function PortfolioPage() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 600 }}>{t.amount}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{t.usd}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{t.usd}</div>
               </div>
             </div>
           ))}
@@ -358,9 +358,9 @@ export default function PortfolioPage() {
       {/* Powered by */}
       <div style={{
         textAlign: 'center', marginTop: 24, fontSize: 11,
-        color: 'var(--color-text-muted)',
+        color: 'var(--color-text-disabled)',
       }}>
-        Balances via <span style={{ color: 'var(--color-accent-teal)' }}>Tether WDK</span> · Prices via <span style={{ color: 'var(--color-accent-teal)' }}>Bitfinex</span>
+        Balances via <span style={{ color: 'var(--color-primary)' }}>Tether WDK</span> · Prices via <span style={{ color: 'var(--color-primary)' }}>Bitfinex</span>
       </div>
     </div>
   );
