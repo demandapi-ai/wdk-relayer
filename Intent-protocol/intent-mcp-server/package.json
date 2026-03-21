@@ -14,7 +14,12 @@
   "type": "commonjs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "@project-serum/anchor": "^0.26.0",
+    "@solana/web3.js": "^1.98.4",
+    "@tetherto/wdk-wallet-evm": "^1.0.0-beta.10",
+    "@tetherto/wdk-wallet-solana": "^1.0.0-beta.5",
     "dotenv": "^17.3.1",
+    "ethers": "^6.16.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
