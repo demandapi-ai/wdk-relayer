@@ -1,5 +1,5 @@
 // src/lib/api.ts
-const RELAYER_API_URL = 'http://localhost:3002';
+const RELAYER_API_URL = 'https://wdk-relayer-production.up.railway.app';
 
 export interface SwapParamsSolToBsc {
   makerAddress: string;
