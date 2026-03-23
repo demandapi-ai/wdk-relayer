@@ -1,6 +1,8 @@
 import chalk from 'chalk';
 import { BSCService } from './BSCService.js';
+import { EthereumService } from './EthereumService.js';
 import { SolanaService } from './SolanaService.js';
+import { BridgeRebalancer } from './BridgeRebalancer.js';
 import { CrossChainIntent } from '../types/intent.js';
 import { relayerConfig } from '../config.js';
 import { PublicKey } from '@solana/web3.js';
@@ -12,15 +14,19 @@ const BN = (anchor as any).BN || (anchor as any).default?.BN;
 
 export class BSCSolanaRelayerCore {
     private bscService: BSCService;
+    private ethService: EthereumService;
     private solanaService: SolanaService;
+    private bridgeRebalancer: BridgeRebalancer;
     private activeIntents: Map<string, CrossChainIntent> = new Map();
     private completedIntents: CrossChainIntent[] = [];
 
     constructor() {
         this.bscService = new BSCService();
+        this.ethService = new EthereumService();
         this.solanaService = new SolanaService();
+        this.bridgeRebalancer = new BridgeRebalancer();
 
-        console.log(chalk.green('🔗 BSC-Solana Relayer Core Initialized'));
+        console.log(chalk.green('🔗 Universal Intent Relayer Core Initialized (BSC + ETH + Solana)'));
 
         // Start Polling Loop
         setInterval(() => this.pollIntents(), relayerConfig.pollIntervalMs);
@@ -102,6 +108,82 @@ export class BSCSolanaRelayerCore {
         return intent;
     }
 
+    /**
+     * Handle ETH → Solana swap request
+     */
+    async handleETHToSolana(params: {
+        makerAddress: string;
+        recipientAddress: string;
+        sellAmount: string;
+        buyAmount: string;
+        hashlock: string;
+        ethEscrowId: string;
+    }): Promise<CrossChainIntent> {
+        const intentId = `eth_sol_${Date.now()}`;
+        const now = Math.floor(Date.now() / 1000);
+
+        console.log(chalk.blue(`\n📥 Processing ETH → Solana Swap`));
+        console.log(chalk.gray(`   ID: ${intentId}`));
+
+        const intent: CrossChainIntent = {
+            id: intentId,
+            direction: 'ETH_TO_SOL',
+            makerAddress: params.makerAddress,
+            takerAddress: this.solanaService.publicKey.toBase58(),
+            recipientAddress: params.recipientAddress,
+            sellAmount: params.sellAmount,
+            buyAmount: params.buyAmount,
+            hashlock: params.hashlock,
+            sourceTimelock: now + relayerConfig.timelocks.source,
+            destTimelock: now + relayerConfig.timelocks.dest,
+            ethEscrowId: params.ethEscrowId,
+            status: 'PENDING',
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        this.activeIntents.set(intentId, intent);
+        return intent;
+    }
+
+    /**
+     * Handle Solana → ETH swap request
+     */
+    async handleSolanaToETH(params: {
+        makerAddress: string;
+        recipientAddress: string;
+        sellAmount: string;
+        buyAmount: string;
+        hashlock: string;
+        solanaEscrowPda: string;
+    }): Promise<CrossChainIntent> {
+        const intentId = `sol_eth_${Date.now()}`;
+        const now = Math.floor(Date.now() / 1000);
+
+        console.log(chalk.blue(`\n📥 Processing Solana → ETH Swap`));
+        console.log(chalk.gray(`   ID: ${intentId}`));
+
+        const intent: CrossChainIntent = {
+            id: intentId,
+            direction: 'SOL_TO_ETH',
+            makerAddress: params.makerAddress,
+            takerAddress: this.ethService.walletAddress || '',
+            recipientAddress: params.recipientAddress,
+            sellAmount: params.sellAmount,
+            buyAmount: params.buyAmount,
+            hashlock: params.hashlock,
+            sourceTimelock: now + relayerConfig.timelocks.source,
+            destTimelock: now + relayerConfig.timelocks.dest,
+            solanaEscrowPda: params.solanaEscrowPda,
+            status: 'PENDING',
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        this.activeIntents.set(intentId, intent);
+        return intent;
+    }
+
     public async pollIntents() {
         for (const [id, intent] of this.activeIntents) {
             try {
@@ -109,6 +191,10 @@ export class BSCSolanaRelayerCore {
                     await this.processBSCToSolana(intent);
                 } else if (intent.direction === 'SOL_TO_BSC') {
                     await this.processSolanaToBSC(intent);
+                } else if (intent.direction === 'ETH_TO_SOL') {
+                    await this.processETHToSolana(intent);
+                } else if (intent.direction === 'SOL_TO_ETH') {
+                    await this.processSolanaToETH(intent);
                 }
             } catch (e: any) {
                 console.error(chalk.red(`Error processing intent ${id}:`), e.message);
@@ -246,6 +332,125 @@ export class BSCSolanaRelayerCore {
         }
     }
 
+    /**
+     * Process Logic: ETH -> Solana
+     */
+    private async processETHToSolana(intent: CrossChainIntent) {
+        if (intent.status === 'PENDING' && intent.ethEscrowId) {
+            const details = await this.ethService.getEscrowDetails(intent.ethEscrowId);
+            if (details && !details.claimed && !details.refunded) {
+                if (BigInt(details.amount) >= BigInt(intent.sellAmount)) {
+                    console.log(chalk.green(`✅ ETH Locked confirmed: ${details.amount} Wei`));
+                    intent.status = 'SOURCE_LOCKED';
+                    intent.updatedAt = Date.now();
+                }
+            }
+        }
+
+        if (intent.status === 'SOURCE_LOCKED' && !intent.destFillTx) {
+            console.log(chalk.cyan(`⚡ Filling on Solana from Ethereum intent...`));
+            try {
+                const hashBuf = Buffer.from(intent.hashlock.replace('0x', ''), 'hex');
+                const devnetUsdcMint = new PublicKey("5Rya94T4npZ5vb938buez4HiiTa99wPt4sBPs6oqfuc5");
+
+                const result = await this.solanaService.createEscrow(
+                    new PublicKey(intent.recipientAddress),
+                    hashBuf,
+                    new BN(intent.buyAmount),
+                    new BN(intent.destTimelock),
+                    devnetUsdcMint
+                );
+
+                intent.destFillTx = result.tx;
+                intent.solanaEscrowPda = result.escrowPda;
+                intent.status = 'DEST_FILLED';
+                intent.updatedAt = Date.now();
+                console.log(chalk.green(`✅ Solana Filled from ETH intent.`));
+            } catch (e: any) {
+                console.error(chalk.red(`❌ Solana fill (ETH→SOL) failed: ${e.message}`));
+                intent.fillRetries = (intent.fillRetries || 0) + 1;
+                if (intent.fillRetries >= 3) {
+                    intent.status = 'FAILED';
+                    intent.failReason = e.message;
+                    this.activeIntents.delete(intent.id);
+                    this.completedIntents.push(intent);
+                }
+            }
+        }
+
+        if (intent.status === 'DEST_FILLED' && intent.solanaEscrowPda) {
+            const secret = intent.secret || await this.solanaService.watchForSecret(new PublicKey(intent.solanaEscrowPda));
+            if (secret && !intent.destClaimTx) {
+                console.log(chalk.green(`✅ Secret Revealed on Solana (ETH→SOL): ${secret}`));
+                intent.secret = secret;
+                intent.status = 'DEST_CLAIMED';
+                await this.claimSourceETH(intent);
+            }
+        }
+    }
+
+    /**
+     * Process Logic: Solana -> ETH
+     */
+    private async processSolanaToETH(intent: CrossChainIntent) {
+        if (intent.status === 'PENDING' && intent.solanaEscrowPda) {
+            try {
+                const escrowPda = new PublicKey(intent.solanaEscrowPda);
+                const accountInfo = await this.solanaService.connection.getAccountInfo(escrowPda);
+                if (accountInfo) {
+                    intent.status = 'SOURCE_LOCKED';
+                    intent.updatedAt = Date.now();
+                    console.log(chalk.green(`✅ Solana Locked confirmed for ETH dest (${accountInfo.lamports} lamports)`));
+                }
+            } catch (e) { /* retry next poll */ }
+        }
+
+        if (intent.status === 'SOURCE_LOCKED' && !intent.destFillTx) {
+            console.log(chalk.cyan(`⚡ Filling on Ethereum (Destination) natively using ERC-20 USDT...`));
+            try {
+                const usdtAddress = relayerConfig.ethereum.usdtAddress;
+                const result = await this.ethService.createEscrow(
+                    intent.hashlock,
+                    intent.recipientAddress,
+                    intent.buyAmount,
+                    relayerConfig.timelocks.dest,
+                    usdtAddress
+                );
+
+                intent.destFillTx = result.txHash;
+                intent.ethEscrowId = result.escrowId;
+                intent.status = 'DEST_FILLED';
+                intent.updatedAt = Date.now();
+                console.log(chalk.green(`✅ Ethereum Filled. Waiting for User to claim...`));
+            } catch (e: any) {
+                console.error(chalk.red(`❌ ETH fill failed: ${e.message}`));
+                intent.fillRetries = (intent.fillRetries || 0) + 1;
+                if (intent.fillRetries >= 3) {
+                    intent.status = 'FAILED';
+                    intent.failReason = e.message;
+                    this.activeIntents.delete(intent.id);
+                    this.completedIntents.push(intent);
+                }
+            }
+        }
+
+        if (intent.status === 'DEST_FILLED' && intent.ethEscrowId) {
+            if (intent.secret) {
+                intent.status = 'DEST_CLAIMED';
+                await this.claimSourceSolana(intent);
+                return;
+            }
+
+            const detectedSecret = this.ethService.getDetectedSecret(intent.ethEscrowId);
+            if (detectedSecret) {
+                console.log(chalk.green(`✅ Secret Detected via ETH Event: ${detectedSecret}`));
+                intent.secret = detectedSecret;
+                intent.status = 'DEST_CLAIMED';
+                await this.claimSourceSolana(intent);
+            }
+        }
+    }
+
     // =========================================
     // Atomic Claims
     // =========================================
@@ -268,6 +473,24 @@ export class BSCSolanaRelayerCore {
         }
     }
 
+    private async claimSourceETH(intent: CrossChainIntent) {
+        if (!intent.secret || !intent.ethEscrowId) return;
+
+        try {
+            console.log(chalk.cyan(`⚡ Claiming Source Ethereum...`));
+            const txHash = await this.ethService.claimEscrow(intent.ethEscrowId, intent.secret);
+
+            intent.sourceClaimTx = txHash;
+            intent.status = 'COMPLETED';
+            console.log(chalk.green(`✅ Swap Complete! Claimed ETH: ${txHash}`));
+
+            this.activeIntents.delete(intent.id);
+            this.completedIntents.push(intent);
+        } catch (e: any) {
+            console.error(chalk.red('Failed to claim source ETH:'), e.message);
+        }
+    }
+
     private async claimSourceSolana(intent: CrossChainIntent) {
         if (!intent.secret || !intent.solanaEscrowPda) return;
 
@@ -282,7 +505,7 @@ export class BSCSolanaRelayerCore {
                 secretBuf,
                 new PublicKey(intent.solanaEscrowPda),
                 NATIVE_MINT,
-                undefined // auto to relayer
+                undefined
             );
 
             intent.sourceClaimTx = tx;
@@ -300,16 +523,19 @@ export class BSCSolanaRelayerCore {
     getIntent(id: string) { return this.activeIntents.get(id) || this.completedIntents.find(i => i.id === id); }
     getActiveIntents() { return Array.from(this.activeIntents.values()); }
     getCompletedIntents() { return this.completedIntents; }
+    getEthService() { return this.ethService; }
     
     async processSecretRevelation(intentId: string, secret: string) {
         const intent = this.activeIntents.get(intentId);
         if (!intent) return;
         intent.secret = secret.replace('0x', '');
         intent.status = 'DEST_CLAIMED';
-        if (intent.direction === 'SOL_TO_BSC') {
+        if (intent.direction === 'SOL_TO_BSC' || intent.direction === 'SOL_TO_ETH') {
             await this.claimSourceSolana(intent);
         } else if (intent.direction === 'BSC_TO_SOL') {
             await this.claimSourceBSC(intent);
+        } else if (intent.direction === 'ETH_TO_SOL') {
+            await this.claimSourceETH(intent);
         }
     }
 }

@@ -1,6 +1,6 @@
 export interface CrossChainIntent {
     id: string;
-    direction: 'SOL_TO_BSC' | 'BSC_TO_SOL' | 'SOL_TO_USDC' | 'USDC_TO_SOL';
+    direction: 'SOL_TO_BSC' | 'BSC_TO_SOL' | 'SOL_TO_ETH' | 'ETH_TO_SOL' | 'ETH_TO_BSC' | 'BSC_TO_ETH' | 'SOL_TO_USDC' | 'USDC_TO_SOL';
     
     makerAddress: string;       // User's source chain address
     takerAddress: string;       // Relayer's destination chain address
@@ -21,6 +21,7 @@ export interface CrossChainIntent {
     // Chain specific IDs
     solanaEscrowPda?: string;
     bscEscrowId?: string;
+    ethEscrowId?: string;
     
     status: IntentStatus;
     
